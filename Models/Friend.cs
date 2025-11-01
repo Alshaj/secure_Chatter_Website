@@ -4,6 +4,7 @@
 
     public class Friend
     {
+        // Friend Class
         public int Id { get; set; }
         public string UserAId { get; set; }
         public IdentityUser UserA { get; set; }
