@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Secure S-DES Tool - Home";
+}
+
+<div class="space-y-12">
+
+    <section class="text-center py-12 px-6 rounded-xl bg-gray-700/50 shadow-inner">
+        <h1 class="text-5xl font-extrabold text-sc-accent tracking-tight mb-4 animate-pulse">
+            S-DES Cryptography Tool 🔑
+        </h1>
+        <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+            Secure your messages instantly. Explore the foundations of **symmetric-key encryption** with the educational Simplified Data Encryption Standard (S-DES).
+        </p>
+        
+    </section>
+
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        
+        <div class="p-6 bg-sc-card rounded-lg shadow-lg border border-gray-600 hover:border-sc-accent transition duration-300">
+            <svg class="w-10 h-10 text-sc-accent mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            <h3 class="text-xl font-bold text-gray-100 mb-2">Simplified Learning</h3>
+            <p class="text-gray-400 text-sm">Grasp complex block cipher concepts without the complexity of the full DES algorithm.</p>
+        </div>
+        
+        <div class="p-6 bg-sc-card rounded-lg shadow-lg border border-gray-600 hover:border-sc-accent transition duration-300">
+            <svg class="w-10 h-10 text-sc-accent mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.228A9 9 0 005.148 13.91M3 21h18M5 3h14a2 2 0 012 2v.217M5 21l3-10h8l3 10"></path></svg>
+            <h3 class="text-xl font-bold text-gray-100 mb-2">Permutation & Substitution</h3>
+            <p class="text-gray-400 text-sm">Visually track the data flow through P-boxes and S-boxes—the heart of the cipher.</p>
+        </div>
+        
+        <div class="p-6 bg-sc-card rounded-lg shadow-lg border border-gray-600 hover:border-sc-accent transition duration-300">
+            <svg class="w-10 h-10 text-sc-accent mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2v5a2 2 0 01-2 2h-5a2 2 0 01-2-2V9a2 2 0 012-2h5z"></path></svg>
+            <h3 class="text-xl font-bold text-gray-100 mb-2">Feistel Network</h3>
+            <p class="text-gray-400 text-sm">Understand the reversible structure that makes the same hardware/code work for E/D.</p>
+        </div>
+
+    </section>
+
+    <section>
+        <h2 class="text-3xl font-bold text-gray-100 mb-6 text-center">How S-DES Works in 3 Steps</h2>
+        <div class="space-y-6">
+            
+            <div class="flex items-start p-5 bg-sc-card rounded-xl shadow-lg border-l-4 border-sc-accent">
+                <span class="text-2xl font-extrabold text-sc-accent mr-4">1.</span>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-100">Initial Permutation (IP) & Key Generation</h4>
+                    <p class="text-gray-400 text-sm">The 8-bit plaintext is rearranged by the Initial Permutation (IP). Simultaneously, the 10-bit master key is processed through left shifts and P-boxes to generate the two 8-bit subkeys ($K_1$ and $K_2$).</p>
+                </div>
+            </div>
+
+            <div class="flex items-start p-5 bg-sc-card rounded-xl shadow-lg border-l-4 border-sc-accent">
+                <span class="text-2xl font-extrabold text-sc-accent mr-4">2.</span>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-100">The Feistel Rounds</h4>
+                    <p class="text-gray-400 text-sm">The core of the cipher. Data goes through two rounds of the Feistel function, mixing the data with the subkeys ($K_1$ then $K_2$) using Expansion Permutation, S-Boxes, and P4 Permutation. The left and right halves are swapped after the first round.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start p-5 bg-sc-card rounded-xl shadow-lg border-l-4 border-sc-accent">
+                <span class="text-2xl font-extrabold text-sc-accent mr-4">3.</span>
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-100">Inverse Permutation ($IP^{-1}$)</h4>
+                    <p class="text-gray-400 text-sm">After the two rounds are complete, the final 8-bit block is run through the Inverse Permutation ($IP^{-1}$), which undoes the first step to produce the final 8-bit ciphertext.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    
+    <section class="p-8 border border-sc-accent rounded-xl bg-gray-800 shadow-2xl">
+        <h2 class="text-3xl font-bold text-gray-100 mb-4">Secure Your Session</h2>
+        
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="flex items-center p-4 bg-sc-accent/20 rounded-lg text-sc-accent border border-sc-accent">
+                <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="font-medium">You are logged in as <span class="font-bold">@User.Identity.Name</span>. Your account is secured, and you can now manage your keys and sessions.</p>
+            </div>
+            <a asp-area="" asp-controller="Sdes" asp-action="Encrypt" class="mt-4 inline-block px-6 py-2 border border-transparent text-sm font-semibold rounded-lg text-sc-dark bg-sc-accent hover:bg-sc-hover transition duration-200">
+                Continue to S-DES Tool
+            </a>
+        }
+        else
+        {
+            <p class="text-gray-400 mb-6">
+                Registration is fast and free. Get a personalized account to securely save and manage your encryption keys.
+            </p>
+            <div class="flex space-x-4">
+                <a asp-area="Identity" asp-page="/Account/Register" class="px-6 py-3 border border-sc-accent text-sm font-semibold rounded-lg text-sc-accent hover:bg-sc-accent hover:text-sc-dark transition duration-200">
+                    Create Account
+                </a>
+                <a asp-area="Identity" asp-page="/Account/Login" class="px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-sc-dark bg-sc-accent hover:bg-sc-hover transition duration-200">
+                    Sign In
+                </a>
+            </div>
+        }
+    </section>
+
+</div>

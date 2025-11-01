@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SecureChatter</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Customizing Tailwind theme with a dark background and a primary teal accent
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sc-dark': '#1e293b',    /* Slate 800 for dark background */
+                        'sc-card': '#334155',    /* Slate 700 for cards/secondary elements */
+                        'sc-accent': '#14b8a6',  /* Teal 500 for primary actions/links */
+                        'sc-hover': '#0d9488',   /* Teal 600 for hover state */
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/S_DES_project4.styles.css" asp-append-version="true" />
+</head>
+<body class="bg-sc-dark text-gray-100 min-h-full flex flex-col font-sans">
+    <header class="shadow-lg">
+        <nav class="bg-sc-card p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <a class="text-2xl font-extrabold text-sc-accent tracking-wider" asp-area="" asp-controller="Home" asp-action="Index">
+                    SecureChatter 🔒
+                </a>
+                
+                <div class="flex items-center space-x-6">
+                    <a class="text-gray-300 hover:text-sc-accent transition duration-150 font-medium" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                    
+                    
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <div class="container mx-auto px-4 flex-grow py-8">
+        <main role="main" class="p-6 md:p-10 bg-sc-card rounded-xl shadow-2xl">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="mt-auto border-t border-gray-700 p-4 text-center text-gray-400">
+        <div class="container mx-auto text-sm">
+            &copy; 2025 - SecureChatter - <a class="text-sc-accent hover:text-teal-400 transition duration-150" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+        </div>
+    </footer>
+    
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

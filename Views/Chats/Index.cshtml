@@ -1,0 +1,259 @@
+﻿@* File: Views/Chat/Index.cshtml *@
+@{
+    ViewData["Title"] = "Your Secure Chats";
+}
+
+@model List<S_DES_project4.Models.Friend>
+
+<div class="flex h-screen bg-sc-dark text-gray-100">
+    <!-- Sidebar -->
+    <div class="w-1/4 bg-sc-card border-r border-gray-700 p-4 flex flex-col shadow-lg">
+        <h2 class="text-2xl font-bold text-sc-accent mb-4">Chats</h2>
+
+        <button id="newChatButton" 
+                class="w-full mb-4 px-4 py-2 bg-sc-accent hover:bg-sc-hover text-sc-dark font-semibold rounded-lg transition duration-200 shadow-md">
+            + New Secure Chat
+        </button>
+
+        <div id="chatList" class="overflow-y-auto space-y-2 flex-grow">
+            @if (Model == null || Model.Count == 0)
+            {
+                <p class="text-gray-400 text-center mt-4">No Chats</p>
+            }
+            else
+            {
+                @foreach (var f in Model)
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+                    var friendEmail = f.UserAId == currentUserId ? f.UserB?.Email : f.UserA?.Email;
+
+                    <div class="chat-wrapper">
+                        <a href="#" class="chat-item block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg transition duration-150 border-l-4 border-transparent hover:border-sc-accent" data-chat-id="@f.Id">
+                            <p class="font-semibold text-gray-100">@friendEmail</p>
+                            <p class="text-xs text-gray-400">Key: ******</p>
+                        </a>
+                        <div class="chat-key-container mt-1 px-2 hidden">
+                            <input type="password" class="chat-key-input w-full px-2 py-1 rounded bg-gray-800 text-white text-sm" placeholder="Enter chat key...">
+                            <button class="unlock-chat-btn w-full mt-1 px-2 py-1 bg-sc-accent text-sc-dark rounded text-sm">Unlock</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Chat Display Area -->
+    <div class="w-3/4 flex flex-col">
+        <div id="chatHeader" class="p-4 bg-sc-card border-b border-gray-700 flex justify-between items-center shadow-md">
+            <h3 class="text-xl font-semibold text-sc-accent">Select a chat to start messaging</h3>
+            @*<span class="text-sm text-gray-400">Encryption Key: <span id="currentKey">N/A</span></span>*@
+        </div>
+
+        <div id="messageDisplay" class="flex-grow p-6 overflow-y-auto space-y-4">
+            <p class="text-center text-gray-500 mt-10">Messages will appear here once a chat is selected.</p>
+        </div>
+
+        <div id="messageInputArea" class="p-4 bg-sc-card border-t border-gray-700 hidden">
+            <div class="flex space-x-3">
+                <input type="text" id="messageInput" placeholder="Type a secure message..." 
+                       class="flex-grow px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-sc-accent focus:border-sc-accent focus:outline-none transition duration-150">
+                <button id="sendMessageButton" 
+                        class="px-6 py-2 bg-sc-accent hover:bg-sc-hover text-sc-dark font-semibold rounded-lg transition duration-200">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for New Secure Chat -->
+<div id="newChatModal" class="fixed inset-0 bg-sc-dark bg-opacity-75 flex items-center justify-center hidden">
+    <div class="bg-sc-card p-6 rounded-xl shadow-2xl w-full max-w-md border border-gray-600">
+        <h3 class="text-2xl font-bold text-sc-accent mb-4">Start New Chat</h3>
+        <form id="newChatForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">Recipient's Email:</label>
+                <input type="email" id="chatEmail" required 
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-300 mb-1">10-bit S-DES Key:</label>
+                <input type="text" id="chatKey" required maxlength="10" placeholder="e.g. 1010011101"
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white">
+                <p class="text-xs text-gray-500 mt-1">Must be exactly 10 bits (0s and 1s).</p>
+            </div>
+            <div class="flex justify-end space-x-3 pt-2">
+                <button type="button" id="cancelNewChat" class="px-4 py-2 text-gray-300 hover:text-sc-accent rounded-lg">Cancel</button>
+                <button type="submit" class="px-6 py-2 bg-sc-accent hover:bg-sc-hover text-sc-dark font-semibold rounded-lg">Create Chat</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const chatList = document.getElementById('chatList');
+    const chatHeader = document.getElementById('chatHeader');
+    const messageDisplay = document.getElementById('messageDisplay');
+    const messageInputArea = document.getElementById('messageInputArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageButton = document.getElementById('sendMessageButton');
+
+    const newChatButton = document.getElementById('newChatButton');
+    const newChatModal = document.getElementById('newChatModal');
+    const cancelNewChat = document.getElementById('cancelNewChat');
+    const newChatForm = document.getElementById('newChatForm');
+
+    // === OPEN MODAL ===
+    newChatButton.addEventListener('click', () => newChatModal.classList.remove('hidden'));
+    cancelNewChat.addEventListener('click', () => newChatModal.classList.add('hidden'));
+
+    // === CREATE NEW CHAT ===
+    newChatForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const email = document.getElementById('chatEmail').value.trim();
+        const key = document.getElementById('chatKey').value.trim();
+
+        if (key.length !== 10 || !/^[01]+$/.test(key)) {
+            alert("❌ Key must be 10 bits long and include only 0 or 1.");
+            return;
+        }
+
+        fetch('/Chats/CreateChat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, keyValue: key })
+        })
+        .then(res => {
+            if (!res.ok) return res.text().then(t => { throw new Error(t); });
+            return res.json();
+        })
+        .then(data => {
+            alert("✅ Chat Created Successfully!");
+            // Dynamically add to chat list without reload
+            const newChatHtml = `
+                <div class="chat-wrapper">
+                    <a href="#" class="chat-item block p-3 bg-gray-700 hover:bg-gray-600 rounded-lg" data-chat-id="${data.friendId}">
+                        <p class="font-semibold text-gray-100">${email}</p>
+                        <p class="text-xs text-gray-400">Key: ******</p>
+                    </a>
+                    <div class="chat-key-container mt-1 px-2 hidden">
+                        <input type="password" class="chat-key-input w-full px-2 py-1 rounded bg-gray-800 text-white text-sm" placeholder="Enter chat key...">
+                        <button class="unlock-chat-btn w-full mt-1 px-2 py-1 bg-sc-accent text-sc-dark rounded text-sm">Unlock</button>
+                    </div>
+                </div>`;
+            chatList.insertAdjacentHTML('afterbegin', newChatHtml);
+            newChatModal.classList.add('hidden');
+            newChatForm.reset();
+        })
+        .catch(err => alert("❌ " + err.message));
+    });
+
+    // === CHAT SELECTION ===
+    chatList.addEventListener('click', function (e) {
+    const chatWrapper = e.target.closest('.chat-wrapper');
+    if (!chatWrapper) return;
+
+    // Ignore clicks on input fields or unlock buttons
+    if (e.target.closest('.chat-key-input') || e.target.closest('.unlock-chat-btn')) return;
+
+    // Set active class
+    document.querySelectorAll('.chat-wrapper').forEach(cw => cw.classList.remove('active'));
+    chatWrapper.classList.add('active');
+
+    // Show key input for this chat, hide others
+    document.querySelectorAll('.chat-key-container').forEach(c => c.classList.add('hidden'));
+    const keyContainer = chatWrapper.querySelector('.chat-key-container');
+    keyContainer.classList.remove('hidden');
+
+    const chatItem = chatWrapper.querySelector('.chat-item');
+    const friendId = chatItem.dataset.chatId;
+
+    chatHeader.innerHTML = `<h3 class="text-xl font-semibold text-sc-accent">${chatItem.querySelector('p:first-child').textContent}</h3>
+                            <span class="text-sm text-gray-400">Encryption Key: <span id="currentKey">******</span></span>`;
+
+    messageDisplay.innerHTML = `<p class="text-center text-gray-500 mt-10">Loading messages...</p>`;
+    messageInputArea.classList.remove('hidden');
+
+    // Use value from key input field if it exists, otherwise null
+    const keyInputField = keyContainer.querySelector('.chat-key-input');
+    const keyToSend = keyInputField.value.trim() === '' ? null : keyInputField.value.trim();
+
+    fetch(`/Messages/LoadMessages?friendId=${friendId}&keyInput=${keyToSend}`)
+        .then(res => {
+            if (!res.ok) return res.text().then(t => { throw new Error(t); });
+            return res.json();
+        })
+        .then(data => {
+            messageDisplay.innerHTML = '';
+            data.forEach(m => {
+                const div = document.createElement('div');
+                div.textContent = m.text; // either encrypted or decrypted
+                div.className = `p-2 rounded-lg max-w-xs break-words mb-2 
+                                 ${m.isMine ? 'bg-green-500 text-white ml-auto' : 'bg-white text-black mr-auto'}`;
+                messageDisplay.appendChild(div);
+            });
+        })
+        .catch(err => {
+            console.error("Error fetching messages:", err);
+            messageDisplay.innerHTML = `<p class="text-center text-gray-500 mt-10">Could not load messages.</p>`;
+        });
+});
+
+    // === UNLOCK CHAT ===
+    chatList.addEventListener('click', function (e) {
+        const unlockBtn = e.target.closest('.unlock-chat-btn');
+        if (!unlockBtn) return;
+
+        const chatWrapper = unlockBtn.closest('.chat-wrapper');
+        const friendId = chatWrapper.querySelector('.chat-item').dataset.chatId;
+        const key = chatWrapper.querySelector('.chat-key-input').value;
+
+        fetch(`/Messages/LoadMessages?friendId=${friendId}&keyInput=${key}`)
+            .then(res => {
+                if (!res.ok) return res.text().then(t => { throw new Error(t); });
+                return res.json();
+            })
+            .then(data => {
+                messageDisplay.innerHTML = '';
+                data.forEach(m => {
+                    const div = document.createElement('div');
+                    div.textContent = m.text;
+                    div.className = `p-2 rounded-lg max-w-xs break-words mb-2 
+                                     ${m.isMine ? 'bg-green-500 text-white ml-auto' : 'bg-white text-black mr-auto'}`;
+                    messageDisplay.appendChild(div);
+                });
+                document.getElementById('currentKey').textContent = '******';
+            })
+            .catch(err => {
+                alert("❌ Invalid Key!");
+                messageDisplay.innerHTML = '';
+                document.getElementById('currentKey').textContent = '******';
+            });
+    });
+
+    // === SEND MESSAGE ===
+    sendMessageButton.addEventListener('click', () => {
+        const activeWrapper = document.querySelector('.chat-wrapper.active');
+        if (!activeWrapper) return alert("Select a chat first");
+
+        const friendId = activeWrapper.querySelector('.chat-item').dataset.chatId;
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        fetch('/Messages/SendMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ friendId, message })
+        })
+        .then(res => res.ok ? res : Promise.reject(res))
+        .then(() => {
+            messageInput.value = '';
+            activeWrapper.querySelector('.unlock-chat-btn').click();
+        })
+        .catch(err => alert("❌ Error sending message"));
+    });
+});
+</script>
+}
